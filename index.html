@@ -1,0 +1,272 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>WPILib Trajectory Generation Presentation</title>
+
+	<link rel="stylesheet" href="css/reset.css">
+	<link rel="stylesheet" href="css/reveal.css">
+	<link rel="stylesheet" href="css/theme/night.css" id="theme">
+
+	<!-- Theme used for syntax highlighting of code -->
+	<link rel="stylesheet" href="lib/css/monokai.css">
+
+	<!-- Printing and PDF exports -->
+	<script>
+		var link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+		document.getElementsByTagName('head')[0].appendChild(link);
+	</script>
+
+	<style>
+		.watermark {
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 100%;
+			z-index: -2;
+		}
+
+		.black-cover {
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 100%;
+			z-index: -1;
+
+			background: #11111185;
+		}
+
+		.left-align {
+			text-align: left;
+		}
+
+		.progression-container {
+			display: flex;
+			flex-direction: row;
+			width: 100%;
+		}
+
+		.progression-container div {
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+		}
+
+		path-display {
+			display: block;
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="reveal">
+		<div class="slides">
+			<section>
+				<path-display data-display-mode="robot" class="watermark">
+					{
+					"reverse": false,
+					"waypoints": [
+					{"x": 0, "y": 0, "heading": 45},
+					{"x": 300, "y": 0, "heading": -90},
+					{"x": 0, "y": 0, "heading": 135},
+					{"x": -300, "y": 0, "heading": -90},
+					{"x": 0, "y": 0, "heading": 45}
+					]
+					}
+				</path-display>
+				<div class="black-cover"></div>
+				<h2 style="text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.95);">A Dive into WPILib Trajectories</h2>
+				<br>
+				<br>
+				<h4 style="font-style: italic;">by <strong>Declan Freeman-Gleason</strong>, Team 4915</h4>
+			</section>
+			<section>
+				<h3 class="left-align">Purpose of this Presentation</h3>
+				<ol>
+					<li>Provide an understanding of the purpose and context of WPILib Trajectories.</li>
+					<li>Show how trajectory generation and following works, not how to use it.</li>
+					<li>Stay at a high level that can still act as a good starting point.</li>
+				</ol>
+				<path-display data-display-mode="optspline" style="margin-top: 60px;">
+					{
+					"reverse": false,
+					"waypoints": [
+					{"x": -300, "y": -20, "heading": -20},
+					{"x": 300, "y": 20, "heading": -20}
+					]
+					}
+				</path-display>
+
+				<aside class="notes">
+					1. I want to show where the wpilib trajectory generator comes from, and what it improves. This is
+					history+development context. Hard to glean if you don't follow wpilib+other teams.
+					2. I want show how trajectory generation and following actually happen. There is good documentation
+					on how to use the wpilib trajectory generator, but little documentation on how it works. I think
+					that having an understanding of the internals helps with getting the best performance out of wpilib
+					trajectories. This is a lso a really interesting subject!
+					3. I also want to stay at a high enough level that this is easily consumed by non-experts, but I
+					also want to go in-depth enough for this presentation to serve as a good reference and a jumping off
+					point.
+				</aside>
+			</section>
+			<section>
+				<h3 class="left-align">History</h3>
+				<div class="progression-container">
+					<div class="fragment fade-in">
+						<small>Spring 2015</small>
+						254 Motion Planning Presentation
+					</div>
+					&rarr;
+					<div class="fragment fade-in">
+						<small>Spring 2016</small>
+						Pathfinder Released
+					</div>
+					&rarr;
+					<div class="fragment fade-in">
+						<small>Summer 2018</small>
+						254 Releases 2018 Code
+					</div>
+					&rarr;
+				</div>
+				<br>
+				<div class="progression-container">
+					<div class="fragment fade-in">
+						<small>Late 2018-2019</small>
+						Some Teams Port and Use 2018 254 Traj. Code
+					</div>
+					&rarr;
+					<div class="fragment fade-in">
+						<small>Summer 2019</small>
+						WPILib Contributor Ports 2018 254 Traj. Code
+					</div>
+					&rarr;
+					<div class="fragment fade-in">
+						<small>Now (Fall 2019)</small>
+						WPILib Trajectories Work
+					</div>
+					<span style="opacity: 0">&rarr;</span>
+				</div>
+
+				<aside class="notes">
+					1. FRC has had an autonomous period for a long time, and being able to drive is a cornerstone of
+					effective autonomous. Usually, we want to be able to drive on a flat field.
+					2. Basic autonomous has always been some combination of driving forward and turning, but you can be
+					much faster if you are somehow able to drive and turn at the same time.
+					3. One milestone in this type of auto was 254's (and one guy from 971's) motion planning in FRC
+					presentation. This was one of the first *well noticed* presentations about more complex motion
+					planning. It is also what pathfinder is based on.
+					4. What they presented is mostly what made it into Pathfinder v1. (There is a pathfinder v2, but
+					it's basically dead.)
+					a. Pathfinder v1/their presentation covers making a trajectory that can turn and drive at the same
+					time while following some constraints, but it lacks some later improvements.
+					b. Later improvements like correcting for global deviations from the path, and making tuning a lot
+					easier through system identification, along with more complex constraints.
+					c. Pathfinder is also a lot slower in one critical way, which means that you have to pregenerate
+					paths.
+					5. 254 actually corrected a lot of these deficiencies in 2017, but I'm going to ignore that because
+					it was different from what they did in 2018, which is the bit that made it into wpilib.
+					6. Also, I know that other teams have done similar stuff even before 2015, but once again, 254's
+					stuff made it into wpilib.
+					7. So, they released their 2018 code which has on-the-fly generation, global controller (to correct
+					for deviations), included system identification to make tuning easier, and allowed for more
+					constraints on the path.
+					8. In the 2019 season some teams, including my team (4915), ported and used 254's 2018 code. It
+					worked great!
+					9. Finally, this summer a wpilib maintainer expressed interest in porting 254 paths, and a student
+					went along and did it. A lot of code was added to wpilib for this!
+					10. And we're here; autonomous trajectory planning and following has never been easier or more
+					robust!
+				</aside>
+			</section>
+			<section class="left-align">
+				<section>
+					<h3>How do we make a trajectory?</h3>
+				</section>
+
+				<section>
+					<h3>Step 1: Specify "Waypoints"</h3>
+					<br>
+					<div style="position: relative;">
+						<path-display style="height: 550px;" data-display-mode="waypoints" data-radius="8"></path-display>
+						<path-display style="height: 550px;" class="watermark fragment" data-display-mode="optspline"
+							data-radius="8" data-fragment-index="1"></path-display>
+						<div class="fragment" data-fragment-index="1">We want this ↑</div>
+					</div>
+
+					<aside class="notes">
+						1. We specify a couple poses. Poses are x, y, heading.
+						2. We want to get a nice, driveable path between them, like this. Then we want to follow that path.
+					</aside>
+				</section>
+
+				<section>
+					<h3 style="position: relative;">Step 2: Find Splines</h3>
+					<ul>
+						<li class="fragment">Can we approximate these waypoints using a convenient mathematical function?</li>
+						<li class="fragment">
+							Enter the Hermite Spline:
+							<ul>
+								<li class="fragment">These are just a polynomial of some degree.</li>
+								<li class="fragment">$P(t) = H_1p_0t + H_2p_1t + H_3\dot{p}_0t + H_4\dot{p}_1t$</li>
+								<li class="fragment">Every waypoint pair gets one polynomial.</li>
+								<li class="fragment">We use quintic or cubic* splines. (The above is cubic.)</li>
+								<li class="fragment">Now we just have to sample at a bunch of different $t$s, right?</li>
+							</ul>
+							<br>
+							<small class="fragment">* Both allow for continous curvature, but cubic makes you give up control of heading at the inner waypoints.</small>
+						</li>
+					</ul>
+				</section>
+			</section>
+		</div>
+	</div>
+
+	<script src="js/reveal.js"></script>
+
+	<script type="module">
+		import PathVisualizer from "./paths/pathvis.js";
+
+		let isLocalPresentation = window.location.host === "localhost";
+
+		Reveal.initialize({
+			controls: isLocalPresentation,
+			controlsTutorial: isLocalPresentation,
+			progress: isLocalPresentation,
+
+			hash: true,
+
+			math: {
+				mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+				config: 'TeX-AMS_HTML-full',  // See http://docs.mathjax.org/en/latest/config-files.html
+				TeX: {
+					Macros: {
+						R: '\\mathbb{R}',
+						set: ['\\left\\{#1 \\; ; \\; #2\\right\\}', 2]
+					}
+				}
+			},
+
+			dependencies: [
+				{ src: 'plugin/markdown/marked.js' },
+				{ src: 'plugin/markdown/markdown.js' },
+				{ src: 'plugin/notes/notes.js', async: true },
+				{ src: 'plugin/highlight/highlight.js', async: true },
+				{ src: 'plugin/math/math.js', async: true }
+			]
+		});
+
+		PathVisualizer.initialize();
+	</script>
+</body>
+
+</html>
