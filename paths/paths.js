@@ -131,6 +131,9 @@ export default class Path {
             case "optspline-dt":
                 this.drawToTime(this.getOptimizedSplineConstantDtSamples(config), ctx, config, firstDrawTime);
                 break;
+            case "optspline-ds":
+                this.drawToTime(this.getOptimizedSplineReparamSamples(config), ctx, config, firstDrawTime);
+                break;
             case "splineCtls":
                 this.getSplines().draw(ctx, config.color);
                 break;
@@ -198,7 +201,7 @@ export default class Path {
             let osplines = this.getSplines();
             let samples = [];
             for (let spline of osplines.splines) {
-                for (let t = 0; t <= 1; t += Number(config.dt) || 0.1) {
+                for (let t = 0; t <= 1; t += Number(config.dt) || 0.01) {
                     samples.push(spline.getPose2dWithCurvature(t));
                 }
             }
@@ -208,20 +211,33 @@ export default class Path {
     }
 
     getOptimizedSplineReparamSamples(config = {}) {
-        let tFromS = (s) => {
-
-        };
-
         if (!this.reparamOSplineSamps) {
-            let osplines = this.getSplines();
+            const osplines = this.getSplines();
+            const dt = config.dt || 0.01;
+            const ds = config.ds || 1;
+
+            let s = 0;
+            let lastS = 0;
+            let lastSampledS = 0;
             let samples = [];
             for (let spline of osplines.splines) {
-                for (let t = 0; t <= 1; t += Number(config.dt) || 0.1) {
-                    samples.push(spline.getPose2dWithCurvature(t));
+                for (let t = 0; t <= 1; t += dt) {
+                    lastS = s;
+                    s += spline.getVelocity(t) * dt;
+
+                    let newTargetS = lastSampledS + ds;
+                    while (lastS <= newTargetS && s >= newTargetS) {
+                        let interpPercent = (newTargetS - s) / ds;
+                        samples.push(spline.getPose2dWithCurvature(t + interpPercent * dt));
+                        lastSampledS = newTargetS;
+
+                        newTargetS += ds;
+                    }
                 }
             }
-            this.constDtOSplineSamps = samples;
+            this.reparamOSplineSamps = samples;
         }
+        return this.reparamOSplineSamps;
     }
 
     getTrajectory() {

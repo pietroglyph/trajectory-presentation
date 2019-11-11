@@ -110,6 +110,7 @@ class PathDisplay extends HTMLElement {
                 },
                 radius: Number(this.dataset.radius),
                 dt: Number(this.dataset.dt),
+                ds: Number(this.dataset.ds),
                 maxDx: Number(this.dataset.maxDx),
                 maxDy: Number(this.dataset.maxDy),
                 maxDTheta: Number(this.dataset.maxDtheta),

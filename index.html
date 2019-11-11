@@ -250,9 +250,13 @@
 						</span>
 						<span class="fragment fade-in" data-fragment-index="3"></span>
 						<span class="fragment fade-in-then-out" data-fragment-index="4">
-							<h4 class="replaceable-label">Sample With a <code>dt = 0.01</code></h4>
-							<path-display style="height: 350px;" class="watermark" data-display-mode="optspline-dt" data-radius="8"
-								data-timing="one-shot" data-dt="0.01" data-animation-time="1"></path-display>
+							<h4 class="replaceable-label">
+								Reparameterize and Sample With a <code>ds = 35</code>
+								<br>
+								Slow because we have to compute $\int_{0}^{t} \sqrt{\frac{dx}{dt}^2 + \frac{dy}{dt}^2} dt$
+							</h4>
+							<path-display style="height: 350px;" class="watermark" data-display-mode="optspline-ds" data-radius="8"
+								data-timing="one-shot" data-dt="0.01" data-animation-time="1" data-ds="35"></path-display>
 						</span>
 						<span class="fragment fade-in" data-fragment-index="5"></span>
 						<span class="fragment fade-in-then-out" data-fragment-index="6">

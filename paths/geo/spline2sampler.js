@@ -19,7 +19,6 @@ export class Spline2Sampler {
             Spline2Sampler.sampleSpline(s, accum, 0.0, 1.0,
                 maxDx, maxDy, maxDTheta,
                                         /*skip first*/ true);
-            console.log(maxDx + ", " + maxDy + ", " + maxDTheta);
         }
         return accum;
     }

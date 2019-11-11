@@ -36,8 +36,7 @@ export class Spline2 {
     // used to evaluate perform partial derivs along x
     static fromSpline2VaryDDX(spline, ddx0, ddx1) {
         return new Spline2(
-            Spline1.fromSplineVaryDD(spline.x, ddx0, ddx1),
-            spline.y);
+            Spline1.fromSplineVaryDD(spline.x, ddx0, ddx1), spline.y);
     }
 
     // used to evaluate perform partial derivs along y
