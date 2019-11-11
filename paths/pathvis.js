@@ -26,11 +26,25 @@ class PathDisplay extends HTMLElement {
         this.canvas = document.createElement("canvas");
         shadowRoot.appendChild(this.canvas);
 
-        Reveal.addEventListener("ready", this.setupCanvas.bind(this));
+        this.hasSetup = false;
+        let setupMethod = this.setupCanvas.bind(this);
+        let closestSection = this.closest("section");
+        Reveal.addEventListener("ready", (() => {
+            if (!this.hasSetup && closestSection.classList.contains("present")) {
+                setupMethod();
+            }
+        }).bind(this));
+        Reveal.addEventListener("slidechanged", ((event) => {
+            if (!this.hasSetup && event.currentSlide == closestSection) {
+                setupMethod();
+            }
+        }).bind(this))
     }
 
     setupCanvas() {
-        let obj = JSON.parse(this.textContent || defaultPath);
+        this.hasSetup = true;
+
+        let obj = JSON.parse(this.textContent.trim() || defaultPath);
         let waypoints = [];
         for (let wp of obj.waypoints) {
             waypoints.push(Pose2d.fromXYTheta(wp.x, wp.y, wp.heading));
@@ -56,13 +70,10 @@ class PathDisplay extends HTMLElement {
         min.x -= maxPathOffset;
         min.y -= maxPathOffset;
 
-        // Offset actual path samples (for non-spline/optimized spline display modes)
-        for (let ps of pathSamples) {
-            ps.translation.x -= min.x;
-            ps.translation.y -= min.y;
-        }
-        // Offset waypoints too (for unoptimized spline display mode)
-        for (let wp of waypoints) {
+        // Invalidate optimized spline/spline sample cache, because they are for different waypoints
+        path.osplinesamps = null;
+        path.osplines = null;
+        for (let wp of path.waypoints) {
             wp.translation.x -= min.x;
             wp.translation.y -= min.y;
         }
@@ -79,10 +90,15 @@ class PathDisplay extends HTMLElement {
         this.canvas.style.width = (this.canvas.width / pixelRatio) + "px"
         this.canvas.style.height = (this.canvas.height / pixelRatio) + "px"
 
-        let isPlaying = false;
+        let isPlaying =
+            this.closest("section").classList.contains("present") && !this.classList.contains("fragment") && this.closest(".fragment") === null;
         let firstDrawTime = Date.now() / 1000;
         let draw = () => {
+            if (!isPlaying)
+                return;
+
             ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
             path.draw(ctx, {
                 mode: this.dataset.displayMode || "robot",
                 color: this.dataset.color || "yellow",
@@ -92,19 +108,23 @@ class PathDisplay extends HTMLElement {
                     "body": this.dataset.bodyPathColor || "transparent",
                     "body/active": this.dataset.bodyColor || "blue",
                 },
-                radius: this.dataset.radius,
+                radius: Number(this.dataset.radius),
+                dt: Number(this.dataset.dt),
+                maxDx: Number(this.dataset.maxDx),
+                maxDy: Number(this.dataset.maxDy),
+                maxDTheta: Number(this.dataset.maxDtheta),
+                animationTime: Number(this.dataset.animationTime),
                 stopDrawingAtRobot: this.dataset.stopDrawingAtRobot,
                 time: this.dataset.timing,
             }, firstDrawTime);
-            if (isPlaying)
-                requestAnimationFrame(draw);
+            requestAnimationFrame(draw);
         };
         draw();
 
         Reveal.addEventListener("slidechanged", ((event) => {
             if (event.currentSlide == this.parentNode && !isPlaying) {
-                isPlaying = true;
                 firstDrawTime = Date.now() / 1000;
+                isPlaying = true;
                 draw();
             } else if (event.currentSlide != this.parentNode) {
                 isPlaying = false;
@@ -112,15 +132,18 @@ class PathDisplay extends HTMLElement {
         }).bind(this));
 
         Reveal.addEventListener("fragmentshown", ((event) => {
-            if (event.fragment == this && !isPlaying) {
-                isPlaying = true;
+            if ((event.fragment === this || event.fragment.contains(this)) && !isPlaying) {
+                console.log("playing");
+                console.log(event.fragment.contains(this));
+                console.log(this);
                 firstDrawTime = Date.now() / 1000;
+                isPlaying = true;
                 draw();
             }
         }).bind(this));
 
         Reveal.addEventListener("fragmenthidden", ((event) => {
-            if (event.fragment == this) {
+            if (event.fragment == this || event.fragment.contains(this)) {
                 isPlaying = false;
             }
         }).bind(this));

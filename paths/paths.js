@@ -123,10 +123,13 @@ export default class Path {
                     p.draw(ctx, config);
                 break;
             case "spline":
-                this.drawToTime(this.getSplineSamples(), ctx, config, firstDrawTime);
+                this.drawToTime(this.getSplineSamples(config), ctx, config, firstDrawTime);
                 break;
             case "optspline":
-                this.drawToTime(this.getOptimizedSplineSamples(), ctx, config, firstDrawTime);
+                this.drawToTime(this.getOptimizedSplineSamples(config), ctx, config, firstDrawTime);
+                break;
+            case "optspline-dt":
+                this.drawToTime(this.getOptimizedSplineConstantDtSamples(config), ctx, config, firstDrawTime);
                 break;
             case "splineCtls":
                 this.getSplines().draw(ctx, config.color);
@@ -148,7 +151,7 @@ export default class Path {
 
     drawToTime(samples, ctx, config, firstDrawTime) {
         for (let i = 0; i < samples.length; i++) {
-            if (config.time === "one-shot" && i / samples.length > (Date.now() / 1000 - firstDrawTime) / (config.animationTime || 1)) {
+            if (config.time === "one-shot" && i / samples.length > (Date.now() / 1000 - firstDrawTime) / (config.animationTime || 0.5)) {
                 return;
             }
             samples[i].draw(ctx, config);
@@ -165,30 +168,60 @@ export default class Path {
         return this.splines;
     }
 
-    getSplineSamples() {
+    getSplineSamples(config = {}) {
         if (!this.splinesamps) {
             let splines = this.getSplines();
             this.splinesamps =
-                Spline2Sampler.sampleSplines(splines);
+                Spline2Sampler.sampleSplines(splines, config.maxDx, config.maxDy, config.maxDTheta);
         }
         return this.splinesamps;
     }
 
     getOptimizedSplines() {
-        if (this.osplines == null) {
+        if (!this.osplines) {
             this.osplines = Spline2Array.fromPose2Array(this.waypoints);
             this.osplines.optimizeCurvature();
         }
         return this.osplines;
     }
 
-    getOptimizedSplineSamples() {
+    getOptimizedSplineSamples(config = {}) {
         if (!this.osplinesamps) {
             let osplines = this.getOptimizedSplines();
-            this.osplinesamps = Spline2Sampler.sampleSplines(osplines);
-            // NB: maxDx, maxDy, maxDTheta are optional params
+            this.osplinesamps = Spline2Sampler.sampleSplines(osplines, config.maxDx, config.maxDy, config.maxDTheta);
         }
         return this.osplinesamps;
+    }
+
+    getOptimizedSplineConstantDtSamples(config = {}) {
+        if (!this.constDtOSplineSamps) {
+            let osplines = this.getSplines();
+            let samples = [];
+            for (let spline of osplines.splines) {
+                for (let t = 0; t <= 1; t += Number(config.dt) || 0.1) {
+                    samples.push(spline.getPose2dWithCurvature(t));
+                }
+            }
+            this.constDtOSplineSamps = samples;
+        }
+        return this.constDtOSplineSamps;
+    }
+
+    getOptimizedSplineReparamSamples(config = {}) {
+        let tFromS = (s) => {
+
+        };
+
+        if (!this.reparamOSplineSamps) {
+            let osplines = this.getSplines();
+            let samples = [];
+            for (let spline of osplines.splines) {
+                for (let t = 0; t <= 1; t += Number(config.dt) || 0.1) {
+                    samples.push(spline.getPose2dWithCurvature(t));
+                }
+            }
+            this.constDtOSplineSamps = samples;
+        }
     }
 
     getTrajectory() {

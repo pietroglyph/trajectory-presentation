@@ -10,15 +10,16 @@ const kRecursionDepthLimit = 500;
 export class Spline2Sampler {
     static sampleSplines(spline2array, maxDx, maxDy, maxDTheta) {
         let accum = []; // array of post2d with curvature
-        if (maxDx == undefined) maxDx = kMaxDX;
-        if (maxDy == undefined) maxDy = kMaxDY;
-        if (maxDTheta == undefined) maxDTheta = kMaxDTheta;
+        maxDx = maxDx || kMaxDX;
+        maxDy = maxDy || kMaxDY;
+        maxDTheta = maxDTheta || kMaxDTheta;
         accum.push(spline2array.get(0).getPose2dWithCurvature(0.0));
         for (let i = 0; i < spline2array.length; i++) {
             let s = spline2array.get(i);
             Spline2Sampler.sampleSpline(s, accum, 0.0, 1.0,
                 maxDx, maxDy, maxDTheta,
                                         /*skip first*/ true);
+            console.log(maxDx + ", " + maxDy + ", " + maxDTheta);
         }
         return accum;
     }
