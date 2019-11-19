@@ -140,6 +140,7 @@ export default class Path {
             case "optsplineCtls":
                 this.getOptimizedSplines().draw(ctx, config.color);
                 break;
+            case "velocity":
             case "trajectory":
             case "robot":
                 if (config.time === "one-shot") {
@@ -265,9 +266,11 @@ export default class Path {
                     rc.maxVel, rc.xmin, rc.xmax, rc.ymin, rc.ymax
                 ));
             }
-            timing.push(new CentripetalMax(constants.paths.MaxCentripetalAccel));
-            timing.push(new DifferentialDriveDynamics(drive,
-                constants.paths.MaxVoltage));
+            if (this.config.useDefaultConstraints) {
+                timing.push(new CentripetalMax(constants.paths.MaxCentripetalAccel));
+                timing.push(new DifferentialDriveDynamics(drive,
+                    constants.paths.MaxVoltage));
+            }
 
             this.trajectory = Trajectory.generate(
                 osamps,

@@ -227,6 +227,7 @@
 								<li class="fragment">These are just a polynomial of some degree.</li>
 								<li class="fragment">We want to find the coefficients. How?</li>
 								<li class="fragment">$P(t) = H_1p_0t + H_2p_1t + H_3\dot{p}_0t + H_4\dot{p}_1t$</li>
+								<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$t \in [0, 1]$</li>
 								<li class="fragment">Every waypoint pair gets one polynomial.</li>
 								<li class="fragment">We use quintic or cubic* splines.</li>
 								<li class="fragment">Now we just have to sample at a bunch of different $t$s, right?</li>
@@ -238,7 +239,7 @@
 
 				<section>
 					<h3 style="position: relative;">Step 3: Sample Trajectory States</h3>
-					<div class="fragment fade-in" data-fragment-index="1">We want to get the pose of all of those intermediate points from $P(t)$.</div>
+					<div class="fragment fade-in" data-fragment-index="1">We want to get the intermediate points from $P(t)$.</div>
 
 					<div style="position: relative;">
 						<path-display style="height: 350px;" data-display-mode="waypoints" data-radius="8"></path-display>
@@ -252,20 +253,123 @@
 						<span class="fragment fade-in-then-out" data-fragment-index="4">
 							<h4 class="replaceable-label">
 								Reparameterize and Sample With a <code>ds = 35</code>
-								<br>
-								Slow because we have to compute $\int_{0}^{t} \sqrt{\frac{dx}{dt}^2 + \frac{dy}{dt}^2} dt$
 							</h4>
 							<path-display style="height: 350px;" class="watermark" data-display-mode="optspline-ds" data-radius="8"
 								data-timing="one-shot" data-dt="0.01" data-animation-time="1" data-ds="35"></path-display>
 						</span>
 						<span class="fragment fade-in" data-fragment-index="5"></span>
 						<span class="fragment fade-in-then-out" data-fragment-index="6">
-							<h4 class="replaceable-label">Sample Based on Min $dx$, $dy$, and $d\theta$</code></h4>
+							<h4 class="replaceable-label">
+								Pathfinder does this, but...
+							</h4>
+						</span>
+						<span class="fragment fade-in" data-fragment-index="7"></span>
+						<span class="fragment fade-in-then-out" data-fragment-index="8">
+							<h4 class="replaceable-label">
+								It's slow, because we must numerically integrate to find arc length
+							</h4>
+						</span>
+						<span class="fragment fade-in" data-fragment-index="9"></span>
+						<span class="fragment fade-in-then-out" data-fragment-index="10">
+							<h4 class="replaceable-label">
+								$\int_{0}^{1} \sqrt{\frac{dx}{dt}^2 + \frac{dy}{dt}^2} dt$
+							</h4>
+						</span>
+						<span class="fragment fade-in" data-fragment-index="11"></span>
+						<span class="fragment fade-in-then-out" data-fragment-index="12">
+							<h4 class="replaceable-label">Reversively Subdivide Until We Get Under Max $dx$, $dy$, and $d\theta$</h4>
 							<path-display style="height: 350px;" class="watermark" data-display-mode="optspline" data-radius="8"
 								data-timing="one-shot"
 								data-max-dx="200" data-max-dy="5" data-max-dtheta="10"></path-display>
 						</span>
 					</div>
+				</section>
+
+				<section class="left-align">
+					<h3 style="position: relative;">Step 4: Find Whole-Robot Velocities</h3>
+					Given some basic constraints like <span class="fragment highlight-blue" data-fragment-index="2">$v_{max}$</span>, <span class="fragment highlight-red" data-fragment-index="1">$a_{max}$</span> and <span class="fragment highlight-green" data-fragment-index="3">$a_{min}$</span>, and some other constraints, we want a <strong>motion profile</strong>.
+					<div style="position: relative;">
+						<span class="watermark" style="margin-top: 8%;">$v$</span>
+						<path-display data-display-mode="velocity" data-radius="3" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true">
+							{
+								"reverse": false,
+								"waypoints": [
+									{"x": 0, "y": 0, "heading": 0},
+									{"x": 600, "y": 0, "heading": 0}
+								]
+							}
+						</path-display>
+						<path-display data-display-mode="robot" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true">
+							{
+								"reverse": false,
+								"waypoints": [
+									{"x": 0, "y": 0, "heading": 0},
+									{"x": 600, "y": 0, "heading": 0}
+								]
+								
+							}
+						</path-display>
+						<span class="watermark" style="margin-top: 20%; text-align: center;">$t$</span>
+
+						<path-display class="watermark fragment" style="z-index: 4;" data-radius="3" data-display-mode="velocity" data-constrained="false" data-timing="2" data-stop-drawing-at-robot="true" data-color="red" data-fragment-index="1">
+							{
+								"reverse": false,
+								"waypoints": [
+									{"x": 0, "y": 0, "heading": 0},
+									{"x": 600, "y": 0, "heading": 0}
+								]
+							}
+						</path-display>
+						<path-display class="watermark fragment" style="z-index: 3;" data-radius="3" data-display-mode="velocity" data-constrained="false" data-timing="2.4916666666666636" data-stop-drawing-at-robot="true" data-color="rgb(27, 145, 255)" data-fragment-index="2">
+							{
+								"reverse": false,
+								"waypoints": [
+									{"x": 0, "y": 0, "heading": 0},
+									{"x": 600, "y": 0, "heading": 0}
+								]
+							}
+						</path-display>
+						<path-display class="watermark fragment" style="z-index: 2;" data-radius="3" data-display-mode="velocity" data-constrained="false" data-timing="Infinity" data-stop-drawing-at-robot="true" data-color="rgb(23, 255, 46)" data-fragment-index="3">
+							{
+								"reverse": false,
+								"waypoints": [
+									{"x": 0, "y": 0, "heading": 0},
+									{"x": 600, "y": 0, "heading": 0}
+								]
+							}
+						</path-display>
+					</div>
+				</section>
+
+				<section class="left-align">
+					<h3 style="position: relative;">Step 4: Find Whole-Robot Velocities</h3>
+					<div style="position: relative;">
+						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;">We can just do basic motion profiling, but <strong>we want arbitrary constraints!</strong></div>
+						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;">Constraints convert trajectory "states" to min/max velocity and acceleration.</div>
+												<span class="watermark" style="margin-top: 8%;">$v$</span>
+						<path-display data-display-mode="velocity" data-radius="3" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true">
+							{
+								"reverse": false,
+								"waypoints": [
+									{"x": 0, "y": 0, "heading": 0},
+									{"x": 600, "y": 0, "heading": 0}
+								]
+							}
+						</path-display>
+						<path-display data-display-mode="robot" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true">
+							{
+								"reverse": false,
+								"waypoints": [
+									{"x": 0, "y": 0, "heading": 0},
+									{"x": 600, "y": 0, "heading": 0}
+								]
+								
+							}
+						</path-display>
+						<span class="watermark" style="margin-top: 20%; text-align: center;">$t$</span>
+						
+					</div>
+
 				</section>
 			</section>
 		</div>

@@ -79,8 +79,6 @@ export class Spline2 {
 
     draw(ctx, color, radius) {
         // draw positions, tangent and curvature 
-        radius = radius | 2;
-
         this.getPose(0);
         this.getCurvature(0); // populate the evalCache
         this._draw(ctx, color, radius);

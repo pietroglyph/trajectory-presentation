@@ -52,30 +52,56 @@ class PathDisplay extends HTMLElement {
         let path = new Path(obj.name, waypoints);
         if (obj.reverse)
             path.reverse();
-        let pathSamples = path.getOptimizedSplineSamples();
+
+        let mode = this.dataset.displayMode || "robot";
+        let pointRadius = Number(this.dataset.radius) || 2;
 
         let max = { x: -Infinity, y: -Infinity };
         let min = { x: Infinity, y: Infinity };
-        for (let ps of pathSamples) {
-            if (max.x < ps.translation.x) max.x = ps.translation.x;
-            if (min.x > ps.translation.x) min.x = ps.translation.x;
-            if (max.y < ps.translation.y) max.y = ps.translation.y;
-            if (min.y > ps.translation.y) min.y = ps.translation.y;
-        }
 
-        let constants = Constants.getInstance();
-        let maxPathOffset = Math.hypot(constants.drive.CenterToFront, constants.drive.CenterToSide);
-        max.x += maxPathOffset;
-        max.y += maxPathOffset;
-        min.x -= maxPathOffset;
-        min.y -= maxPathOffset;
+        let xScale = 1;
+        if (mode === "velocity") {
+            let samps = path.getTrajectory().getSamples();
+            let timeScale = this.clientWidth / samps[samps.length - 1].getSampleTime();
+            for (let ps of samps) {
+                let t = ps.getSampleTime() * timeScale;
+                let v = ps.velocity;
 
-        // Invalidate optimized spline/spline sample cache, because they are for different waypoints
-        path.osplinesamps = null;
-        path.osplines = null;
-        for (let wp of path.waypoints) {
-            wp.translation.x -= min.x;
-            wp.translation.y -= min.y;
+                if (max.x < t) max.x = t;
+                if (min.x > t) min.x = t;
+                if (max.y < v) max.y = v;
+                if (min.y > v) min.y = v;
+            }
+            xScale = timeScale;
+
+            max.x += pointRadius;
+            max.y += pointRadius;
+            min.x -= pointRadius;
+            min.y -= pointRadius;
+        } else {
+            let pathSamples = path.getOptimizedSplineSamples();
+
+            for (let ps of pathSamples) {
+                if (max.x < ps.translation.x) max.x = ps.translation.x;
+                if (min.x > ps.translation.x) min.x = ps.translation.x;
+                if (max.y < ps.translation.y) max.y = ps.translation.y;
+                if (min.y > ps.translation.y) min.y = ps.translation.y;
+            }
+
+            let constants = Constants.getInstance();
+            let maxPathOffset = Math.hypot(constants.drive.CenterToFront, constants.drive.CenterToSide);
+            max.x += maxPathOffset;
+            max.y += maxPathOffset;
+            min.x -= maxPathOffset;
+            min.y -= maxPathOffset;
+
+            // Invalidate optimized spline/spline sample cache, because they are for different waypoints
+            path.osplinesamps = null;
+            path.osplines = null;
+            for (let wp of path.waypoints) {
+                wp.translation.x -= min.x;
+                wp.translation.y -= min.y;
+            }
         }
 
         this.canvas.width = max.x - min.x;
@@ -100,7 +126,7 @@ class PathDisplay extends HTMLElement {
             ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
             path.draw(ctx, {
-                mode: this.dataset.displayMode || "robot",
+                mode: mode,
                 color: this.dataset.color || "yellow",
                 colors: {
                     "frontwheels": this.dataset.frontWheelColor || "yellow",
@@ -108,7 +134,7 @@ class PathDisplay extends HTMLElement {
                     "body": this.dataset.bodyPathColor || "transparent",
                     "body/active": this.dataset.bodyColor || "blue",
                 },
-                radius: Number(this.dataset.radius),
+                radius: pointRadius,
                 dt: Number(this.dataset.dt),
                 ds: Number(this.dataset.ds),
                 maxDx: Number(this.dataset.maxDx),
@@ -117,6 +143,7 @@ class PathDisplay extends HTMLElement {
                 animationTime: Number(this.dataset.animationTime),
                 stopDrawingAtRobot: this.dataset.stopDrawingAtRobot,
                 time: this.dataset.timing,
+                xScale: xScale
             }, firstDrawTime);
             requestAnimationFrame(draw);
         };
@@ -133,13 +160,12 @@ class PathDisplay extends HTMLElement {
         }).bind(this));
 
         Reveal.addEventListener("fragmentshown", ((event) => {
-            if ((event.fragment === this || event.fragment.contains(this)) && !isPlaying) {
-                console.log("playing");
-                console.log(event.fragment.contains(this));
-                console.log(this);
-                firstDrawTime = Date.now() / 1000;
-                isPlaying = true;
-                draw();
+            for (let fragment of event.fragments) {
+                if ((fragment === this || fragment.contains(this)) && !isPlaying) {
+                    firstDrawTime = Date.now() / 1000;
+                    isPlaying = true;
+                    draw();
+                }
             }
         }).bind(this));
 

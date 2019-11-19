@@ -54,13 +54,34 @@ export class Trajectory {
                     config.colors["frontwheels"]);
             }
 
-            for (let p of this.poseSamples) {
+            if (!currentRobotDrawn) {
+                let p = this.poseSamples[this.poseSamples.length - 1];
+
+                this._drawCurrentRobot(p, xrad, yrad, ctx, config);
             }
-        }
-        else {
+        } else if (config.mode == "velocity") {
+            for (let i = 5; i < this.poseSamples.length - 5; i++) {
+                let p = this.poseSamples[i];
+                if (p.getSampleTime() > config.time)
+                    break;
+
+                this._drawPlot(p.getSampleTime(), p.velocity, ctx, config);
+            }
+        } else if (config.mode == "trajectory") {
             for (let p of this.poseSamples)
                 p.draw(ctx, config.color);
         }
+    }
+
+    _drawPlot(x, y, ctx, config) {
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.arc(x * config.xScale, ctx.canvas.clientHeight - y, config.radius, 0, 2 * Math.PI, false);
+        ctx.fillStyle = config.color;
+        ctx.fill();
+
+        ctx.restore();
     }
 
     _drawRobot(p, xrad, yrad, ctx, config) {

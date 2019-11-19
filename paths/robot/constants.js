@@ -18,7 +18,7 @@ export class Constants {
             {
                 MaxVelocity: 240, // in/s (20 ft/s)
                 MaxAccel: 120, // in/s*s
-                MaxCentripetalAccel: 30,  // in/s*s (?)
+                MaxCentripetalAccel: 30,  // in/s*s
                 MaxVoltage: 9,  // V
             };
         switch (robotid) {
@@ -41,7 +41,6 @@ export class Constants {
                         },
                         CenterToFront: 16.125,
                         CenterToSide: 13.75,
-                        // hm what about CenterToBack?
                         VelocityKp: .2,
                     };
                 this.robot =
