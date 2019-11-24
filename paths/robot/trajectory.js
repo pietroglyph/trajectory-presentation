@@ -1,8 +1,16 @@
 import { Constants } from "./constants.js";
+import DifferentialDrive from "../../../paths/robot/drive.js";
+import { Rotation2d, Twist2d } from "../../../paths/geo/pose2d.js";
+import Units from "../../../paths/geo/units.js";
+import Pose2d, { Translation2d } from "../geo/pose2d.js";
+
+const differentialDrive = new DifferentialDrive(Constants.getInstance(), null, null);
+
 export class Trajectory {
     constructor(poseSamples) {
         this.poseSamples = poseSamples;
         this.isDrawingReverse = false;
+        // transmissions being null is ok because we just use this for kinematics
     }
 
     reverse() {
@@ -22,12 +30,13 @@ export class Trajectory {
     }
 
     draw(ctx, config) {
+        let endT = this.poseSamples[this.poseSamples.length - 1].getSampleTime();
+        let endTMS = endT * 1000;
+
         if (config.mode == "robot") {
             let constants = Constants.getInstance();
             let yrad = constants.drive.CenterToSide;
             let xrad = constants.drive.CenterToFront;
-            let endT = this.poseSamples[this.poseSamples.length - 1].getSampleTime();
-            let endTMS = endT * 1000;
             let currentTime = config.time;
             if (currentTime === "triangle-wave") {
                 currentTime = 2 * Math.abs((Date.now() % endTMS) / 1000 - endTMS / 1000 / 2);
@@ -37,7 +46,19 @@ export class Trajectory {
 
             // draw the pose that matches our time
             let currentRobotDrawn = false;
+            let pose = Pose2d.clone(this.poseSamples[0] || Pose2d.fromIdentity());
+            let lastPose = Pose2d.fromIdentity();
             for (let p of this.poseSamples) {
+                if (config.sim !== "none") {
+                    let vel = (lastPose.getSampleTime() - p.getSampleTime()) * p.velocity;
+                    pose = pose.transformBy(Pose2d.fromXYTheta(vel * p.rotation.cos, vel * p.rotation.sin, lastPose.rotation.inverse().rotateBy(p.rotation).getRadians()))
+                    p.translation = Translation2d.clone(pose.translation);
+                    p.rotation = Rotation2d.clone(pose.rotation);
+                }
+                
+                if (config.colors["velvector"] !== "transparent" && p.getSampleTime() % (config.vectorTimestep || 0.5) < 0.2) {
+                    this._drawVelVector(p.translation.x, p.translation.y, p.velocity, p.getRotation(), ctx, config);
+                }
                 if (config.colors["body"] !== "transparent") {
                     this._drawRobot(p, xrad, yrad, ctx, config);
                 }
@@ -60,17 +81,61 @@ export class Trajectory {
                 this._drawCurrentRobot(p, xrad, yrad, ctx, config);
             }
         } else if (config.mode == "velocity") {
-            for (let i = 5; i < this.poseSamples.length - 5; i++) {
-                let p = this.poseSamples[i];
-                if (p.getSampleTime() > config.time)
+            let samples = this.poseSamples.slice(5, this.poseSamples.length - 5);
+
+            let index = samples.length;
+            let reversedIterator = {
+                next: function () {
+                    index--;
+                    return {
+                        done: index < 0,
+                        value: samples[index]
+                    }
+                }
+            }
+            reversedIterator[Symbol.iterator] = function() {
+                return this;
+            }
+
+            for (let p of config.pass === "backward" ? reversedIterator : samples) {
+                if (config.pass === "backward" && p.getSampleTime() < endT - config.time) {
+                    break;
+                } else if (config.pass !== "backward" && p.getSampleTime() > config.time)
                     break;
 
-                this._drawPlot(p.getSampleTime(), p.velocity, ctx, config);
+                let vel = p.getVelocityForPass(config.pass);
+                if (config.side === "left") {
+                    vel = p.wheelStates.left;
+                } else if (config.side === "right") {
+                    vel = p.wheelStates.right;
+                }
+
+                this._drawPlot(p.getSampleTime(), vel, ctx, config);
             }
         } else if (config.mode == "trajectory") {
             for (let p of this.poseSamples)
                 p.draw(ctx, config.color);
         }
+    }
+
+
+    _drawVelVector(x, y, vel, rotation, ctx, config) {
+        vel /= 10;
+
+        let fromx = x, fromy = y;
+        let tox = Math.cos(rotation.getRadians()) * vel + x;
+        let toy = Math.sin(rotation.getRadians()) * vel + y;
+
+        ctx.save();
+        ctx.lineWidth = 1;
+
+        ctx.strokeStyle = config.colors["velvector"];
+        ctx.beginPath();
+        ctx.moveTo(fromx, fromy);
+        ctx.lineTo(tox, toy);
+        ctx.stroke();
+
+        ctx.restore();
     }
 
     _drawPlot(x, y, ctx, config) {
@@ -140,45 +205,14 @@ export class Trajectory {
     //  cf: timeParameterizeTrajectory (java implementation)
     static generate(samples, timingConstraints, stepSize,
         startVelocity, endVelocity, maxVelocity, maxAbsAccel) {
-        // Resample with equidistant steps along the trajectory. 
-        // Note that we may have sampled the spline with the same 
-        // value for stepSize. In that case, we were working on the xy 
-        // plane. Now, we're working along the robot trajectory. 
-        //
-        let result = [];
-        let totalDist = 0;
-        samples[0].distance = 0.0;
-        result.push(samples[0]);
-        let last = samples[0];
-        let next;
-        for (let i = 1; i < samples.length; i++) {
-            next = samples[i];
-            let dist = next.getDistance(last);
-            totalDist += dist;
-            if (dist >= stepSize) {
-                let pct = stepSize / dist;
-                let ipose = last.interpolate(next, pct);
-                ipose.distance = pct * dist; // should be stepSize;
-                result.push(ipose);
-                last = ipose;
-            }
-            else
-                if (i == samples.length - 1) {
-                    // last sample isn't as far as stepSize, but it
-                    // is important, so lets just append it for now.
-                    result.push(next);
-                }
-        }
-        result.totalDist = totalDist;
-
         if (timingConstraints) {
             // apply time constraints to deliver per-sample  velocity 
             // target. (tbd)
-            Trajectory.applyTimingConstraints(result, timingConstraints,
+            Trajectory.applyTimingConstraints(samples, timingConstraints,
                 startVelocity, endVelocity, maxVelocity, maxAbsAccel);
         }
 
-        return new Trajectory(result);
+        return new Trajectory(samples);
     }
 
     static applyTimingConstraints(samples, constraints,
@@ -256,10 +290,12 @@ export class Trajectory {
                     }
                     // if actual accel is less than last minaccel,
                     // we repapir it in backward pass.
-                    break; // while 1 loop
+                    break; // while loop
                 }
             } /* end while */
             last = s;
+            
+            s.forwardPassVel = s.maxVel;
         } /* end foreach sample */
 
         // Backward Pass
@@ -301,11 +337,14 @@ export class Trajectory {
                 }
             } // end while
             next = s;
+
+            s.backwardPassVel = s.maxVel;
         } /* end foreach sample */
 
         // Integrate constrained states forward in time to obtain
         // timed states
         let t = 0, s = 0, v = 0;
+        let currentPose = Pose2d.fromXYTheta(0, 0, 0);
         for (let i = 0; i < samples.length; i++) {
             let samp = samples[i];
             samp.t = t;
@@ -328,6 +367,21 @@ export class Trajectory {
             s = samp.distance;
             samp.velocity = v;
             samp.acceleration = accel;
+
+            samp.getVelocityForPass = (pass) => pass === "forward" ? samp.forwardPassVel || samp.velocity : samp.backwardPassVel || samp.velocity;
+            samp.getMaxVelocityForPass = () => Math.max(samp.getVelocityForPass("forward"), samp.getVelocityForPass("backward"));
+
+            if (i > 1) {
+                let wheelStates = differentialDrive.solveInverseKinematics({
+                    linear: Units.inchesToMeters(samp.velocity),
+                    angular: samples[i - 1].rotation.inverse().rotateBy(samp.rotation).getRadians() / (samp.t - samples[i - 1].t)
+                });
+                samp.wheelStates = { left: Units.metersToInches(wheelStates.left), right: Units.metersToInches(wheelStates.right) };
+            } else {
+                samp.wheelStates = { left: 0, right: 0 };
+            }
+            
+
             delete samp.maxVel;
         }
     }

@@ -147,6 +147,16 @@ export default class Path {
                     config.time = Date.now() / 1000 - firstDrawTime;
                 }
                 this.getTrajectory().draw(ctx, config);
+
+                if (config.mode === "robot") {
+                    ctx.save();
+                    for (let constraint of this.config.regionConstraints) {
+                        ctx.fillStyle = "#d44cffc7";
+                        ctx.fillRect(constraint.xmin, constraint.ymin, constraint.xmax - constraint.xmin, constraint.ymax - constraint.ymin);
+                    }
+                    ctx.restore();
+                }
+
                 break;
             default:
                 app.warning("Path.draw unknown mode " + config.mode);

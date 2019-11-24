@@ -49,7 +49,7 @@ class PathDisplay extends HTMLElement {
         for (let wp of obj.waypoints) {
             waypoints.push(Pose2d.fromXYTheta(wp.x, wp.y, wp.heading));
         }
-        let path = new Path(obj.name, waypoints);
+        let path = new Path(obj.name, waypoints, {regionConstraints: obj.regionConstraints || []});
         if (obj.reverse)
             path.reverse();
 
@@ -65,7 +65,13 @@ class PathDisplay extends HTMLElement {
             let timeScale = this.clientWidth / samps[samps.length - 1].getSampleTime();
             for (let ps of samps) {
                 let t = ps.getSampleTime() * timeScale;
-                let v = ps.velocity;
+                let v = undefined;
+                if (this.dataset.side === "left")
+                    v = ps.wheelStates.left;
+                else if (this.dataset.side === "right")
+                    v = ps.wheelStates.right;
+                else
+                    v = ps.getMaxVelocityForPass();
 
                 if (max.x < t) max.x = t;
                 if (min.x > t) min.x = t;
@@ -104,6 +110,17 @@ class PathDisplay extends HTMLElement {
             }
         }
 
+        for (let c of path.config.regionConstraints) {
+            c.xmin -= min.x;
+            c.ymin -= min.y;
+            c.xmax -= min.x;
+            c.ymax -= min.y;
+        }
+        if (path.config.regionConstraints.length !== 0) {
+            path.trajectory = null;
+            path.getTrajectory();
+        }
+
         this.canvas.width = max.x - min.x;
         this.canvas.height = max.y - min.y;
 
@@ -133,6 +150,7 @@ class PathDisplay extends HTMLElement {
                     "backwheels": this.dataset.backWheelColor || "yellow",
                     "body": this.dataset.bodyPathColor || "transparent",
                     "body/active": this.dataset.bodyColor || "blue",
+                    "velvector": this.dataset.velVector || "transparent",
                 },
                 radius: pointRadius,
                 dt: Number(this.dataset.dt),
@@ -143,7 +161,10 @@ class PathDisplay extends HTMLElement {
                 animationTime: Number(this.dataset.animationTime),
                 stopDrawingAtRobot: this.dataset.stopDrawingAtRobot,
                 time: this.dataset.timing,
-                xScale: xScale
+                xScale: xScale,
+                pass: this.dataset.pass,
+                side: this.dataset.side,
+                sim: this.dataset.sim || "none",
             }, firstDrawTime);
             requestAnimationFrame(draw);
         };
@@ -161,7 +182,7 @@ class PathDisplay extends HTMLElement {
 
         Reveal.addEventListener("fragmentshown", ((event) => {
             for (let fragment of event.fragments) {
-                if ((fragment === this || fragment.contains(this)) && !isPlaying) {
+                if ((fragment === this || (fragment.contains(this) && !this.classList.contains("fragment"))) && !isPlaying) {
                     firstDrawTime = Date.now() / 1000;
                     isPlaying = true;
                     draw();

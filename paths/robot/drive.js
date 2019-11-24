@@ -112,14 +112,13 @@ export class DifferentialDrive {
 
     // solveInverseKinematics returns WheelState
     //  input chassisState is either velocity or accel
+    // Note that this has been modified from the original to _not_ return radians
     solveInverseKinematics(chassisState) {
         let wheelState = new WheelState(chassisState.usage);
         wheelState.left = (chassisState.linear -
-            this.effWheelbaseRad * chassisState.angular) /
-            this.wheelRadius;
+            this.effWheelbaseRad * chassisState.angular);
         wheelState.right = (chassisState.linear +
-            this.effWheelbaseRad * chassisState.angular) /
-            this.wheelRadius;
+            this.effWheelbaseRad * chassisState.angular);
         return wheelState;
     }
 
