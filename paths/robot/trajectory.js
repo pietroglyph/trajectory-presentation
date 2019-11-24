@@ -1,7 +1,7 @@
 import { Constants } from "./constants.js";
-import DifferentialDrive from "../../../paths/robot/drive.js";
-import { Rotation2d, Twist2d } from "../../../paths/geo/pose2d.js";
-import Units from "../../../paths/geo/units.js";
+import DifferentialDrive from "./paths/robot/drive.js";
+import { Rotation2d, Twist2d } from "./paths/geo/pose2d.js";
+import Units from "./paths/geo/units.js";
 import Pose2d, { Translation2d } from "../geo/pose2d.js";
 
 const differentialDrive = new DifferentialDrive(Constants.getInstance(), null, null);
