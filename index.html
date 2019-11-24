@@ -218,206 +218,180 @@
 				</aside>
 			</section>
 			<section class="left-align">
-				<section>
-					<h3>How do we make a trajectory?</h3>
-				</section>
+				<h3>How do we make a trajectory?</h3>
+			</section>
 
-				<section>
-					<h3>Step 1: Specify "Waypoints"</h3>
-					<br>
-					<div style="position: relative;">
-						<div class="fragment watermark fade-out" data-fragment-index="1" style="text-align: center;">From these waypoints</div>
-						<path-display style="height: 550px;" data-display-mode="waypoints" data-radius="8"></path-display>
-						<path-display style="height: 550px;" class="watermark fragment" data-display-mode="optspline"
-							data-radius="8" data-fragment-index="2" data-timing="one-shot"></path-display>
-						<div class="fragment watermark" data-fragment-index="2" style="text-align: center;">We want this</div>
-					</div>
+			<section>
+				<h3>Step 1: Specify "Waypoints"</h3>
+				<br>
+				<div style="position: relative;">
+					<div class="fragment watermark fade-out" data-fragment-index="1" style="text-align: center;">From these waypoints</div>
+					<path-display style="height: 550px;" data-display-mode="waypoints" data-radius="8"></path-display>
+					<path-display style="height: 550px;" class="watermark fragment" data-display-mode="optspline"
+						data-radius="8" data-fragment-index="2" data-timing="one-shot"></path-display>
+					<div class="fragment watermark" data-fragment-index="2" style="text-align: center;">We want this</div>
+				</div>
 
-					<aside class="notes">
-						1. We specify a couple poses. Poses are x, y, heading.
-						2. We want to get a nice, driveable path between them, like this. Then we want to follow that path.
-					</aside>
-				</section>
+				<aside class="notes">
+					1. We specify a couple poses. Poses are x, y, heading.
+					2. We want to get a nice, driveable path between them, like this. Then we want to follow that path.
+				</aside>
+			</section>
 
-				<section>
-					<h3 style="position: relative;">Step 2: Find Splines</h3>
-					<ul>
-						<li class="fragment">Can we approximate these waypoints using a convenient mathematical function?</li>
-						<li class="fragment">
-							Enter the Hermite Spline:
-							<ul>
-								<li class="fragment">These are just a polynomial of some degree.</li>
-								<li class="fragment">We want to find the coefficients. How?</li>
-								<li class="fragment">$P(t) = H_1p_0 + H_2p_1 + H_3\dot{p}_0 + H_4\dot{p}_1$</li>
-								<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$t \in [0, 1]$</li>
-								<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$p_1 =$ a vector containing the final x and y</li>
-								<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$p_0 =$ a vector containing the initial x and y</li>
-								<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$\dot{p}_0$ and $\dot{p}_1 =$ tangents to the initial and final position vectors</li>
-								<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$H_i$ are the <i>Hermite Blending functions</i>; these are found with a little algebraic manipulation</li>
-								<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">E.g. $H_1 = 2t^3-3t^2+1$</li>
-								<li class="fragment"><strong>Every waypoint pair gets one polynomial</strong></li>
-								<li class="fragment">We use quintic or cubic* splines</li>
-								<li class="fragment">Now we just have to sample at a bunch of different $t$s, right?</li>
-							</ul>
-							<small class="fragment">* Both allow for continous curvature, but cubic makes you give up control of heading at the inner waypoints.</small>
-						</li>
-					</ul>
-				</section>
+			<section>
+				<h3 style="position: relative;">Step 2: Find Splines</h3>
+				<ul>
+					<li class="fragment">Can we approximate these waypoints using a convenient mathematical function?</li>
+					<li class="fragment">
+						Enter the Hermite Spline:
+						<ul>
+							<li class="fragment">These are just a polynomial of some degree.</li>
+							<li class="fragment">We want to find the coefficients. How?</li>
+							<li class="fragment">$P(t) = H_1p_0 + H_2p_1 + H_3\dot{p}_0 + H_4\dot{p}_1$</li>
+							<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$t \in [0, 1]$</li>
+							<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$p_1 =$ a vector containing the final x and y</li>
+							<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$p_0 =$ a vector containing the initial x and y</li>
+							<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$\dot{p}_0$ and $\dot{p}_1 =$ tangents to the initial and final position vectors</li>
+							<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">$H_i$ are the <i>Hermite Blending functions</i>; these are found with a little algebraic manipulation</li>
+							<li class="fragment fade-in-then-out replaceable-label" style="text-align: left;">E.g. $H_1 = 2t^3-3t^2+1$</li>
+							<li class="fragment"><strong>Every waypoint pair gets one polynomial</strong></li>
+							<li class="fragment">We use quintic or cubic* splines</li>
+							<li class="fragment">Now we just have to sample at a bunch of different $t$s, right?</li>
+						</ul>
+						<small class="fragment">* Both allow for continous curvature, but cubic makes you give up control of heading at the inner waypoints.</small>
+					</li>
+				</ul>
+			</section>
 
-				<section>
-					<h3 style="position: relative;">Step 3: Sample Trajectory States</h3>
-					<div class="fragment fade-in" data-fragment-index="1">We want to get the intermediate points from $P(t)$.</div>
+			<section>
+				<h3 style="position: relative;">Step 3: Sample Trajectory States</h3>
+				<div class="fragment fade-in" data-fragment-index="1">We want to get the intermediate points from $P(t)$.</div>
 
-					<div style="position: relative;">
-						<path-display style="height: 350px;" data-display-mode="waypoints" data-radius="8"></path-display>
-						
-						<span class="fragment fade-in-then-out" data-fragment-index="2">
-							<h4 class="replaceable-label">Sample With a <code>dt = 0.1</code></h4>
-							<path-display style="height: 350px;" class="watermark" data-display-mode="optspline-dt" data-radius="8"
-								data-timing="one-shot" data-dt="0.1" data-animation-time="1"></path-display>
-						</span>
-						<span class="fragment fade-in" data-fragment-index="3"></span>
-						<span class="fragment fade-in-then-out" data-fragment-index="4">
-							<h4 class="replaceable-label">
-								Reparameterize and Sample With a <code>ds = 35</code>
-							</h4>
-							<path-display style="height: 350px;" class="watermark" data-display-mode="optspline-ds" data-radius="8"
-								data-timing="one-shot" data-dt="0.01" data-animation-time="1" data-ds="35"></path-display>
-						</span>
-						<span class="fragment fade-in" data-fragment-index="5"></span>
-						<span class="fragment fade-in-then-out" data-fragment-index="6">
-							<h4 class="replaceable-label">
-								Pathfinder does this, but...
-							</h4>
-						</span>
-						<span class="fragment fade-in" data-fragment-index="7"></span>
-						<span class="fragment fade-in-then-out" data-fragment-index="8">
-							<h4 class="replaceable-label">
-								It's slow, because we must numerically integrate to find arc length
-							</h4>
-						</span>
-						<span class="fragment fade-in" data-fragment-index="9"></span>
-						<span class="fragment fade-in-then-out" data-fragment-index="10">
-							<h4 class="replaceable-label">
-								$\int_{0}^{1} \sqrt{\frac{dx}{dt}^2 + \frac{dy}{dt}^2} dt$
-							</h4>
-						</span>
-						<span class="fragment fade-in" data-fragment-index="11"></span>
-						<span class="fragment fade-in" data-fragment-index="12">
-							<path-display style="height: 350px;" class="watermark" data-display-mode="optspline" data-radius="8"
-								data-timing="one-shot"
-								data-max-dx="200" data-max-dy="5" data-max-dtheta="10"></path-display>
-						</span>
-						<h4 class="replaceable-label fragment fade-in-then-out" data-fragment-index="13">Reversively Subdivide Until We Get Under Max $dx$, $dy$, and $d\theta$</h4>
-						<span class="fragment fade-in" data-fragment-index="14"></span>
-						<h4 class="replaceable-label fragment fade-in-then-out" data-fragment-index="15">$dx \approx$ forward, $dy \approx$ side "skid", $d\theta
-							\approx$ turning</h4>
-						<span class="fragment fade-in" data-fragment-index="16"></span>
-						<h4 class="replaceable-label fragment fade-in-then-out" data-fragment-index="17">No integrals! Much faster than Pathfinder</h4>
-					</div>
-				</section>
+				<div style="position: relative;">
+					<path-display style="height: 350px;" data-display-mode="waypoints" data-radius="8"></path-display>
+					
+					<span class="fragment fade-in-then-out" data-fragment-index="2">
+						<h4 class="replaceable-label">Sample With a <code>dt = 0.1</code></h4>
+						<path-display style="height: 350px;" class="watermark" data-display-mode="optspline-dt" data-radius="8"
+							data-timing="one-shot" data-dt="0.1" data-animation-time="1"></path-display>
+					</span>
+					<span class="fragment fade-in" data-fragment-index="3"></span>
+					<span class="fragment fade-in-then-out" data-fragment-index="4">
+						<h4 class="replaceable-label">
+							Reparameterize and Sample With a <code>ds = 35</code>
+						</h4>
+						<path-display style="height: 350px;" class="watermark" data-display-mode="optspline-ds" data-radius="8"
+							data-timing="one-shot" data-dt="0.01" data-animation-time="1" data-ds="35"></path-display>
+					</span>
+					<span class="fragment fade-in" data-fragment-index="5"></span>
+					<span class="fragment fade-in-then-out" data-fragment-index="6">
+						<h4 class="replaceable-label">
+							Pathfinder does this, but...
+						</h4>
+					</span>
+					<span class="fragment fade-in" data-fragment-index="7"></span>
+					<span class="fragment fade-in-then-out" data-fragment-index="8">
+						<h4 class="replaceable-label">
+							It's slow, because we must numerically integrate to find arc length
+						</h4>
+					</span>
+					<span class="fragment fade-in" data-fragment-index="9"></span>
+					<span class="fragment fade-in-then-out" data-fragment-index="10">
+						<h4 class="replaceable-label">
+							$\int_{0}^{1} \sqrt{\frac{dx}{dt}^2 + \frac{dy}{dt}^2} dt$
+						</h4>
+					</span>
+					<span class="fragment fade-in" data-fragment-index="11"></span>
+					<span class="fragment fade-in" data-fragment-index="12">
+						<path-display style="height: 350px;" class="watermark" data-display-mode="optspline" data-radius="8"
+							data-timing="one-shot"
+							data-max-dx="200" data-max-dy="5" data-max-dtheta="10"></path-display>
+					</span>
+					<h4 class="replaceable-label fragment fade-in-then-out" data-fragment-index="13">Reversively Subdivide Until We Get Under Max $dx$, $dy$, and $d\theta$</h4>
+					<span class="fragment fade-in" data-fragment-index="14"></span>
+					<h4 class="replaceable-label fragment fade-in-then-out" data-fragment-index="15">$dx \approx$ forward, $dy \approx$ side "skid", $d\theta
+						\approx$ turning</h4>
+					<span class="fragment fade-in" data-fragment-index="16"></span>
+					<h4 class="replaceable-label fragment fade-in-then-out" data-fragment-index="17">No integrals! Much faster than Pathfinder</h4>
+				</div>
+			</section>
 
-				<section class="left-align">
-					<h3 style="position: relative;">Step 4: Find Whole-Robot Velocities</h3>
-					Given some basic constraints like <span class="fragment highlight-blue" data-fragment-index="2">$v_{max}$</span>, <span class="fragment highlight-red" data-fragment-index="1">$a_{max}$</span> and <span class="fragment highlight-green" data-fragment-index="3">$a_{min}$</span>, and some other constraints, we want a <strong>motion profile</strong>.
-					<div style="position: relative;">
-						<span class="watermark" style="margin-top: 8%;">$v$</span>
-						<path-display data-display-mode="velocity" data-radius="3" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": 0, "y": 0, "heading": 0},
-									{"x": 600, "y": 0, "heading": 0}
-								]
-							}
-						</path-display>
-						<path-display data-display-mode="robot" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": 0, "y": 0, "heading": 0},
-									{"x": 600, "y": 0, "heading": 0}
-								]
-								
-							}
-						</path-display>
-						<span class="watermark" style="margin-top: 20%; text-align: center;">$t$</span>
+			<section class="left-align">
+				<h3 style="position: relative;">Step 4: Find Whole-Robot Velocities</h3>
+				Given some basic constraints like <span class="fragment highlight-blue" data-fragment-index="2">$v_{max}$</span>, <span class="fragment highlight-red" data-fragment-index="1">$a_{max}$</span> and <span class="fragment highlight-green" data-fragment-index="3">$a_{min}$</span>, and some other constraints, we want a <strong>motion profile</strong>.
+				<div style="position: relative;">
+					<span class="watermark" style="margin-top: 8%;">$v$</span>
+					<path-display data-display-mode="velocity" data-radius="3" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": 0, "y": 0, "heading": 0},
+								{"x": 600, "y": 0, "heading": 0}
+							]
+						}
+					</path-display>
+					<path-display data-display-mode="robot" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": 0, "y": 0, "heading": 0},
+								{"x": 600, "y": 0, "heading": 0}
+							]
+							
+						}
+					</path-display>
+					<span class="watermark" style="margin-top: 20%; text-align: center;">$t$</span>
 
-						<path-display class="watermark fragment" style="z-index: 4;" data-radius="3" data-display-mode="velocity" data-constrained="false" data-timing="2" data-stop-drawing-at-robot="true" data-color="red" data-fragment-index="1">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": 0, "y": 0, "heading": 0},
-									{"x": 600, "y": 0, "heading": 0}
-								]
-							}
-						</path-display>
-						<path-display class="watermark fragment" style="z-index: 3;" data-radius="3" data-display-mode="velocity" data-constrained="false" data-timing="2.4916666666666636" data-stop-drawing-at-robot="true" data-color="rgb(27, 145, 255)" data-fragment-index="2">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": 0, "y": 0, "heading": 0},
-									{"x": 600, "y": 0, "heading": 0}
-								]
-							}
-						</path-display>
-						<path-display class="watermark fragment" style="z-index: 2;" data-radius="3" data-display-mode="velocity" data-constrained="false" data-timing="Infinity" data-stop-drawing-at-robot="true" data-color="rgb(23, 255, 46)" data-fragment-index="3">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": 0, "y": 0, "heading": 0},
-									{"x": 600, "y": 0, "heading": 0}
-								]
-							}
-						</path-display>
-					</div>
-				</section>
+					<path-display class="watermark fragment" style="z-index: 4;" data-radius="3" data-display-mode="velocity" data-constrained="false" data-timing="2" data-stop-drawing-at-robot="true" data-color="red" data-fragment-index="1">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": 0, "y": 0, "heading": 0},
+								{"x": 600, "y": 0, "heading": 0}
+							]
+						}
+					</path-display>
+					<path-display class="watermark fragment" style="z-index: 3;" data-radius="3" data-display-mode="velocity" data-constrained="false" data-timing="2.4916666666666636" data-stop-drawing-at-robot="true" data-color="rgb(27, 145, 255)" data-fragment-index="2">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": 0, "y": 0, "heading": 0},
+								{"x": 600, "y": 0, "heading": 0}
+							]
+						}
+					</path-display>
+					<path-display class="watermark fragment" style="z-index: 2;" data-radius="3" data-display-mode="velocity" data-constrained="false" data-timing="Infinity" data-stop-drawing-at-robot="true" data-color="rgb(23, 255, 46)" data-fragment-index="3">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": 0, "y": 0, "heading": 0},
+								{"x": 600, "y": 0, "heading": 0}
+							]
+						}
+					</path-display>
+				</div>
+			</section>
 
-				<section class="left-align">
-					<h3 style="position: relative;">Step 4: Find Whole-Robot Velocities</h3>
-					<div style="height: 3em">
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="1">We can just do basic motion
-							profiling, but <strong>we want arbitrary constraints!</strong></div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="2">Constraints convert trajectory
-							"states" to min/max velocity and acceleration.</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="3">E.g. limit velocity within a region;
-							limit control effort (voltage).</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="4">Let's try limiting in a region of the field.</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="5">We want to find the <strong>maximum admissible velocity</strong> for each trajectory state.</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="6">Forwards pass where we set the velocity of each state to $min(v_{user max}, v_{accel max}, v_{constraint max})$.</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="7">Forwards pass has computed all accels between states, but some of them are larger than our max accel.</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="8">We do a backwards pass that uses all computed accels and max accels to compute acceptable new max velocities.</div>
-						<div class="fragment fade-in replaceable-label" style="text-align: left;" data-fragment-index="9">Then we use $a$, $s$, and $v$ to compute $t$ for all states. We now have a complete time-parameterized velocity profile!</div>
-					</div>
-					<div class="fragment fade-in" data-fragment-index="5" style="position: relative; height: 300px;">
-						<span class="watermark" style="margin-top: 8%;">$v$</span>
-						<span class="watermark" style="margin-top: 25%; text-align: center;">$t$</span>
-						<path-display class="fragment fade-in watermark" data-display-mode="velocity" data-radius="3" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true" data-pass="forward" data-has-border="true" data-color="yellow" data-fragment-index="6">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": 0, "y": 0, "heading": 0},
-									{"x": 600, "y": 0, "heading": 0}
-								],
-								"regionConstraints": [
-									{"maxVel": 50, "xmin": 100, "xmax": 200, "ymin": -30, "ymax": 30}
-								]	
-							}
-						</path-display>
-						<path-display class="fragment fade-in watermark" data-display-mode="velocity" data-radius="3" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true" data-pass="backward" data-has-border="true" data-color="blue" data-fragment-index="8">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": 0, "y": 0, "heading": 0},
-									{"x": 600, "y": 0, "heading": 0}
-								],
-								"regionConstraints": [
-									{"maxVel": 50, "xmin": 100, "xmax": 200, "ymin": -30, "ymax": 30}
-								]	
-							}
-						</path-display>
-					</div>
-					<path-display class="fragment fade-in" data-display-mode="robot" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
+			<section class="left-align">
+				<h3 style="position: relative;">Step 4: Find Whole-Robot Velocities</h3>
+				<div style="height: 3em">
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="1">We can just do basic motion
+						profiling, but <strong>we want arbitrary constraints!</strong></div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="2">Constraints convert trajectory
+						"states" to min/max velocity and acceleration.</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="3">E.g. limit velocity within a region;
+						limit control effort (voltage).</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="4">Let's try limiting in a region of the field.</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="5">We want to find the <strong>maximum admissible velocity</strong> for each trajectory state.</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="6">Forwards pass. Set the velocity of each state to $min(v_{user max}, v_{accel max}, v_{constraint max})$.</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="7">Forwards pass has computed all accels between states, but some of them are larger than our max accel.</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="8">We do a backwards pass that uses all computed accels and max accels to compute acceptable new max velocities.</div>
+					<div class="fragment fade-in replaceable-label" style="text-align: left;" data-fragment-index="9">Then we use $a$, $s$, and $v$ to compute $t$ for all states. We now have a complete time-parameterized velocity profile!</div>
+				</div>
+				<div class="fragment fade-in" data-fragment-index="5" style="position: relative; height: 300px;">
+					<span class="watermark" style="margin-top: 8%;">$v$</span>
+					<span class="watermark" style="margin-top: 25%; text-align: center;">$t$</span>
+					<path-display class="fragment fade-in watermark" data-display-mode="velocity" data-radius="3" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true" data-pass="forward" data-has-border="true" data-color="yellow" data-fragment-index="6">
 						{
 							"reverse": false,
 							"waypoints": [
@@ -429,93 +403,117 @@
 							]	
 						}
 					</path-display>
-				</section>
-
-				<section class="left-align">
-					<h3 style="position: relative;">Step 5: Find Wheel Velocities</h3>
-					<div>We want to turn whole-robot velocities into wheel velocities. We use <i>inverse kinematics</i>.</div>
-					<div style="text-align: center;">$v_l = v_c - \omega{}r_b$ and $v_r = v_c + \omega{}r_b$</div>
-					<div style="position: relative; height: 300px; margin-top: 0.5em;">
-						<div class="fragment fade-in-then-out watermark" data-fragment-index="1">$v_c$:</div>
-						<div class="fragment fade-in-then-out watermark" data-fragment-index="2">$v_l$:</div>
-						<div class="fragment fade-in-then-out watermark" data-fragment-index="3">$v_r$:</div>
-						<path-display class="fragment fade-in-then-out watermark" data-display-mode="velocity" data-side="center" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="1">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": -300, "y": -20, "heading": -20},
-									{"x": 300, "y": 20, "heading": -20}
-								]
-							}
-						</path-display>
-						<path-display class="fragment fade-in-then-out watermark" data-display-mode="velocity" data-side="left" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="2">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": -300, "y": -20, "heading": -20},
-									{"x": 300, "y": 20, "heading": -20}
-								]
-							}
-						</path-display>
-						<path-display class="fragment fade-in-then-out watermark" data-display-mode="velocity" data-side="right" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="3">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": -300, "y": -20, "heading": -20},
-									{"x": 300, "y": 20, "heading": -20}
-								]
-							}
-						</path-display>
-					</div>
-					<path-display class="fragment fade-in" data-display-mode="robot" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="1">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": -300, "y": -20, "heading": -20},
-									{"x": 300, "y": 20, "heading": -20}
-								]
-							}
+					<path-display class="fragment fade-in watermark" data-display-mode="velocity" data-radius="3" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true" data-pass="backward" data-has-border="true" data-color="blue" data-fragment-index="8">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": 0, "y": 0, "heading": 0},
+								{"x": 600, "y": 0, "heading": 0}
+							],
+							"regionConstraints": [
+								{"maxVel": 50, "xmin": 100, "xmax": 200, "ymin": -30, "ymax": 30}
+							]	
+						}
 					</path-display>
-				</section>
+				</div>
+				<path-display class="fragment fade-in" data-display-mode="robot" data-constrained="false" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
+					{
+						"reverse": false,
+						"waypoints": [
+							{"x": 0, "y": 0, "heading": 0},
+							{"x": 600, "y": 0, "heading": 0}
+						],
+						"regionConstraints": [
+							{"maxVel": 50, "xmin": 100, "xmax": 200, "ymin": -30, "ymax": 30}
+						]	
+					}
+				</path-display>
+			</section>
 
-				<section class="left-align">
-					<h3 style="position: relative;">Step 6: Odometry</h3>
-					<div style="height: 2em;">
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="1">We could use $v_r$ and $v_l$ as the references (setpoints) for the wheels and be done...</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="2">Pathfinder calls it a day at this point. But what if our robot gets bumped?</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="3">If we can keep track of where we are ("odometry"), we can use that to compensate.</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="4">Let's take the distances traveled by each side $d_l$ and $d_r$, and convert them the distance traveled by the whole robot, $d_c$.</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="5">$p = p + \langle cos(d\theta) d_c, sin(d\theta) d_c \rangle$. Note that wpilib uses a more sophisticated method which takes turning into account.</div>
-					</div>
-					<div style="position: relative; height: 300px; margin-top: 3em;">
-						<path-display class="fragment fade-in" data-display-mode="robot" data-timing="one-shot" data-stop-drawing-at-robot="true" data-vel-vector="red" data-fragment-index="4">
-							{
-								"reverse": false,
-								"waypoints": [
-									{"x": 0, "y": 0, "heading": 0},
-									{"x": 340, "y": -120, "heading": 0}
-								]
-							}
-						</path-display>
-					</div>
-				</section>
+			<section class="left-align">
+				<h3 style="position: relative;">Step 5: Find Wheel Velocities</h3>
+				<div>We want to turn whole-robot velocities into wheel velocities. We use <i>inverse kinematics</i>.</div>
+				<div style="text-align: center;">$v_l = v_c - \omega{}r_b$ and $v_r = v_c + \omega{}r_b$</div>
+				<div style="position: relative; height: 300px; margin-top: 0.5em;">
+					<div class="fragment fade-in-then-out watermark" data-fragment-index="1">$v_c$:</div>
+					<div class="fragment fade-in-then-out watermark" data-fragment-index="2">$v_l$:</div>
+					<div class="fragment fade-in-then-out watermark" data-fragment-index="3">$v_r$:</div>
+					<path-display class="fragment fade-in-then-out watermark" data-display-mode="velocity" data-side="center" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="1">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": -300, "y": -20, "heading": -20},
+								{"x": 300, "y": 20, "heading": -20}
+							]
+						}
+					</path-display>
+					<path-display class="fragment fade-in-then-out watermark" data-display-mode="velocity" data-side="left" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="2">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": -300, "y": -20, "heading": -20},
+								{"x": 300, "y": 20, "heading": -20}
+							]
+						}
+					</path-display>
+					<path-display class="fragment fade-in-then-out watermark" data-display-mode="velocity" data-side="right" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="3">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": -300, "y": -20, "heading": -20},
+								{"x": 300, "y": 20, "heading": -20}
+							]
+						}
+					</path-display>
+				</div>
+				<path-display class="fragment fade-in" data-display-mode="robot" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="1">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": -300, "y": -20, "heading": -20},
+								{"x": 300, "y": 20, "heading": -20}
+							]
+						}
+				</path-display>
+			</section>
 
-				<section class="left-align">
-					<h3 style="position: relative;">Step 7: Global Following</h3>
-					<div style="height: 4em;">
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="1">Now that we know where we are, we will use a "global pose controller" to keep us on the path.</div>
-						<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="2">The best option is the RAMSETE nonlinear, time-varying unicyle controller.</div>
-						<div class="fragment fade-in replaceable-label" style="text-align: left;" data-fragment-index="3">Given our pose, a target pose, and our current wheel velocities, RAMSETE makes new target wheel velocities to get us back on the path.</div>
-					</div>
-					<div class="fragment fade-in" style="text-align: left;" data-fragment-index="4">To follow a trajectory, we:</div>
-					<ul>
-						<li class="fragment fade-in" data-fragment-index="5">Start a timer at $t = 0$</li>
-						<li class="fragment fade-in" data-fragment-index="6">We get the trajectory state at the current $t$, and get the target wheel velocities
-						modified by RAMSETE for that trajectory state.</li>
-						<li class="fragment fade-in" data-fragment-index="7">We feed those velocities to the wheel followers (usually P controllers),
-						and we're done!</li>
-					</ul>
-				</section>
+			<section class="left-align">
+				<h3 style="position: relative;">Step 6: Odometry</h3>
+				<div style="height: 2em;">
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="1">We could use $v_r$ and $v_l$ as the references (setpoints) for the wheels and be done...</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="2">Pathfinder calls it a day at this point. But what if our robot gets bumped?</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="3">If we can keep track of where we are ("odometry"), we can use that to compensate.</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="4">Let's take the distances traveled by each side $d_l$ and $d_r$, and convert them the distance traveled by the whole robot, $d_c$.</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="5">$p = p + \langle cos(d\theta) d_c, sin(d\theta) d_c \rangle$. Note that wpilib uses a more sophisticated method which takes turning into account.</div>
+				</div>
+				<div style="position: relative; height: 300px; margin-top: 3em;">
+					<path-display class="fragment fade-in" data-display-mode="robot" data-timing="one-shot" data-stop-drawing-at-robot="true" data-vel-vector="red" data-fragment-index="4">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": 0, "y": 0, "heading": 0},
+								{"x": 340, "y": -120, "heading": 0}
+							]
+						}
+					</path-display>
+				</div>
+			</section>
+
+			<section class="left-align">
+				<h3 style="position: relative;">Step 7: Global Following</h3>
+				<div style="height: 4em;">
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="1">Now that we know where we are, we will use a "global pose controller" to keep us on the path.</div>
+					<div class="fragment fade-in-then-out replaceable-label" style="text-align: left;" data-fragment-index="2">The best option is the RAMSETE nonlinear, time-varying unicyle controller.</div>
+					<div class="fragment fade-in replaceable-label" style="text-align: left;" data-fragment-index="3">Given our pose, a target pose, and our current wheel velocities, RAMSETE makes new target wheel velocities to get us back on the path.</div>
+				</div>
+				<div class="fragment fade-in" style="text-align: left;" data-fragment-index="4">To follow a trajectory, we:</div>
+				<ul>
+					<li class="fragment fade-in" data-fragment-index="5">Start a timer at $t = 0$</li>
+					<li class="fragment fade-in" data-fragment-index="6">We get the trajectory state at the current $t$, and get the target wheel velocities
+					modified by RAMSETE for that trajectory state.</li>
+					<li class="fragment fade-in" data-fragment-index="7">We feed those velocities to the wheel followers (usually P controllers),
+					and we're done!</li>
+				</ul>
 			</section>
 
 			<section class="left-align">
@@ -532,24 +530,22 @@
 
 			<section>
 				<h3 style="position: relative;">Demos</h3>
-				<!-- <div style="display: flex; flex-direction: row;"> -->
-					<iframe width="50%" height="315" src="https://www.youtube-nocookie.com/embed/iOQQfzMU4KQ?end=10&autoplay=1" frameborder="0"
-						allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-					<path-display class="fragment fade-in" data-display-mode="robot" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
-						{
-							"reverse": false,
-							"waypoints": [
-								{"x": 65.625, "y": -45.50, "heading": 0},
-								{"x": 112.90023622, "y": -45.25, "heading": 0},
-								{"x": 190, "y": -90, "heading": 320},
-								{"x": 260.75, "y": -45.509, "heading": 90}
-							],
-							"regionConstraints": [
-								{"maxVel": 15, "xmin": 0, "ymin": -173, "xmax": 100, "ymax": 173}
-							]
-						}
-					</path-display>
-				<!-- </div> -->
+				<iframe width="50%" height="315" src="https://www.youtube-nocookie.com/embed/iOQQfzMU4KQ?end=10&autoplay=1" frameborder="0"
+					allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+				<path-display class="fragment fade-in" data-display-mode="robot" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
+					{
+						"reverse": false,
+						"waypoints": [
+							{"x": 65.625, "y": -45.50, "heading": 0},
+							{"x": 112.90023622, "y": -45.25, "heading": 0},
+							{"x": 190, "y": -90, "heading": 320},
+							{"x": 260.75, "y": -45.509, "heading": 90}
+						],
+						"regionConstraints": [
+							{"maxVel": 15, "xmin": 0, "ymin": -173, "xmax": 100, "ymax": 173}
+						]
+					}
+				</path-display>
 			</section>
 		</div>
 	</div>
