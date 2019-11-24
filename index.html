@@ -72,15 +72,14 @@
 		}
 
 		#githubBadge {
-			display: inline-block;
-
 			width: 32px;
 			height: 32px;
-
 			background-image: url("assets/GitHub-Mark-Light-120px-plus.png");
 			background-size: contain;
-
 			z-index: 1000;
+			position: fixed;
+			bottom: 0;
+			left: calc(50% - 16px);
 		}
 
 		#githubBadge:hover {
@@ -565,7 +564,7 @@
 			controlsTutorial: !isLocalPresentation,
 			progress: !isLocalPresentation,
 
-			hash: true,
+			hash: false,
 
 			math: {
 				mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
