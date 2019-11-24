@@ -66,6 +66,28 @@
 			height: 0;
 			margin: 0 !important;
 		}
+		
+		.hidden {
+			display: none;
+		}
+
+		#githubBadge {
+			position: fixed;
+			right: 5px;
+			top: 5px;
+
+			width: 32px;
+			height: 32px;
+
+			background-image: url("assets/GitHub-Mark-Light-120px-plus.png");
+			background-size: contain;
+
+			z-index: 1000;
+		}
+
+		#githubBadge:hover {
+			filter: brightness(90%);
+		}
 
 		path-display {
 			display: block;
@@ -77,6 +99,8 @@
 </head>
 
 <body>
+	<a id="githubBadge" class="hidden" href="https://github.com/pietroglyph/trajectory-presentation" aria-label="View code on GitHub"></a>
+
 	<div class="reveal">
 		<div class="slides">
 			<section>
@@ -538,12 +562,15 @@
 	<script type="module">
 		import PathVisualizer from "./paths/pathvis.js";
 
-		let isLocalPresentation = window.location.hostname !== "localhost";
+		let isLocalPresentation = window.location.hostname === "localhost";
+		if (!isLocalPresentation) {
+			document.querySelector("#githubBadge").classList.remove("hidden");
+		}
 
 		Reveal.initialize({
-			controls: isLocalPresentation,
-			controlsTutorial: isLocalPresentation,
-			progress: isLocalPresentation,
+			controls: !isLocalPresentation,
+			controlsTutorial: !isLocalPresentation,
+			progress: !isLocalPresentation,
 
 			hash: true,
 
