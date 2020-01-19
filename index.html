@@ -550,6 +550,101 @@
 					}
 				</path-display>
 			</section>
+
+			<section>
+				<h3>Bonus slide: Trajectory Reversal</h3>
+				<table style="width: 100%">
+					<tr>
+						<th></th>
+						<th>reversed = <code>false</code></th>
+						<th>reversed = <code>true</code></th>
+					</tr>
+					<tr>
+						<th>Traj. 1</th>
+						<td>
+							<path-display data-display-mode="robot" data-draw-heading="true" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
+								{
+									"reverse": false,
+									"waypoints": [
+										{"x": 0, "y": 0, "heading": 0},
+										{"x": 300, "y": -60, "heading": 0}
+									]
+								}
+							</path-display>
+						</td>
+						<td>
+							<path-display data-display-mode="robot" data-draw-heading="true" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
+								{
+									"reverse": true,
+									"waypoints": [
+										{"x": 0, "y": 0, "heading": 180},
+										{"x": 300, "y": -60, "heading": 180}
+									]
+								}
+							</path-display>
+						</td>
+					</tr>
+					<tr>
+						<th>Traj. 2</th>
+						<td>
+							<path-display data-display-mode="robot" data-draw-heading="true" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
+								{
+									"reverse": false,
+									"waypoints": [
+										{"x": 0, "y": 0, "heading": 180},
+										{"x": 300, "y": -60, "heading": 180}
+									]
+								}
+							</path-display>
+						</td>
+						<td>
+							<path-display data-display-mode="robot" data-draw-heading="true" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
+								{
+									"reverse": true,
+									"waypoints": [
+										{"x": 0, "y": 0, "heading": 0},
+										{"x": 300, "y": -60, "heading": 0}
+									]
+								}
+							</path-display>
+						</td>
+					</tr>
+				</table>
+				<!-- <div style="display: flex; flex-direction: row;">
+					Traj. 1
+					
+					<path-display data-display-mode="robot" data-draw-heading="true" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
+						{
+							"reverse": true,
+							"waypoints": [
+								{"x": 0, "y": 0, "heading": 180},
+								{"x": 300, "y": -60, "heading": 180}
+							]
+						}
+					</path-display>
+				</div>
+				<div style="display: flex; flex-direction: row;">
+					Traj. 2
+					<path-display data-display-mode="robot" data-draw-heading="true" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
+						{
+							"reverse": false,
+							"waypoints": [
+								{"x": 0, "y": 0, "heading": 180},
+								{"x": 300, "y": -60, "heading": 180}
+							]
+						}
+					</path-display>
+					<path-display data-display-mode="robot" data-draw-heading="true" data-timing="one-shot" data-stop-drawing-at-robot="true" data-fragment-index="4">
+						{
+							"reverse": true,
+							"waypoints": [
+								{"x": 0, "y": 0, "heading": 0},
+								{"x": 300, "y": -60, "heading": 0}
+							]
+						}
+					</path-display>
+				</div> -->
+			</section>
 		</div>
 	</div>
 

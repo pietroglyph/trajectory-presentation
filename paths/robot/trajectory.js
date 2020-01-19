@@ -55,6 +55,8 @@ export class Trajectory {
                     p.rotation = Rotation2d.clone(pose.rotation);
                 }
                 
+                if (config.drawHeading && p.getSampleTime() === 0)
+                    p.draw(ctx, { ...config, ...{ radius: 4, pointerColor: "red", color: "blue" } });
                 if (config.colors["velvector"] !== "transparent" && p.getSampleTime() % (config.vectorTimestep || 0.5) < 0.2) {
                     this._drawVelVector(p.translation.x, p.translation.y, p.velocity, p.getRotation(), ctx, config);
                 }
@@ -63,6 +65,8 @@ export class Trajectory {
                 }
                 if (!currentRobotDrawn && p.getSampleTime() > currentTime) {
                     this._drawCurrentRobot(p, xrad, yrad, ctx, config);
+                    if (config.drawHeading)
+                        p.draw(ctx, { ...config, ...{ radius: 4, pointerColor: "red", color: "transparent" } });
                     currentRobotDrawn = true;
                     if (config.stopDrawingAtRobot) {
                         break;
@@ -78,6 +82,8 @@ export class Trajectory {
                 let p = this.poseSamples[this.poseSamples.length - 1];
 
                 this._drawCurrentRobot(p, xrad, yrad, ctx, config);
+                if (config.drawHeading)
+                    p.draw(ctx, { ...config, ...{ radius: 4, pointerColor: "red", color: "transparent" } });
             }
         } else if (config.mode == "velocity") {
             let samples = this.poseSamples.slice(5, this.poseSamples.length - 5);

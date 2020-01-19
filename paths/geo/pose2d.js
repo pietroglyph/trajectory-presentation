@@ -465,7 +465,7 @@ export class Pose2d  /* this is also a Pose2dWithCurvature when values are prese
         ctx.lineCap = "round";
         ctx.fill();
 
-        let len = (config.reverse ? -1 : 1) * (config.radius || 2) * 2;
+        let len = (config.reverse ? -1 : 1) * (config.radius || 2) * 4;
         ctx.strokeStyle = config.pointerColor || "transparent"; // color;
         ctx.beginPath();
         ctx.moveTo(x, y);

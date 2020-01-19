@@ -165,6 +165,7 @@ class PathDisplay extends HTMLElement {
                 pass: this.dataset.pass,
                 side: this.dataset.side,
                 sim: this.dataset.sim || "none",
+                drawHeading: this.dataset.drawHeading || false,
             }, firstDrawTime);
             requestAnimationFrame(draw);
         };
